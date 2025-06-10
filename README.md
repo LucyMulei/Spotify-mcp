@@ -4,7 +4,7 @@ emoji: 🎵
 colorFrom: blue
 colorTo: purple
 sdk: gradio
-sdk_version: 4.0.0
+sdk_version: 5.33.1
 app_file: server.py
 pinned: false
 ---
@@ -132,4 +132,4 @@ This configuration allows Claude Desktop to connect to the Gradio MCP server run
 
 ## Tags
 
-mcp-server-track 
+mcp-server-track
