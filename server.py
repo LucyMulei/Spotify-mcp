@@ -361,7 +361,7 @@ gr_mcp_tool9 = gr.Interface(fn=get_user_top_tracks,inputs=[gr.Number(label="numb
 with gr.Blocks() as app:
     gr.Markdown("# 🎵 Spotify MCP Tools")
     gr.Markdown("Welcome to the Spotify Music Control Panel, Below are the tools available in the Spotify MCP server.")
-    gr.Markdown("Due to Limitations in the Authication of the Spotify account Please Run it locally with your Spotify Developer Credentials ,checkout the Readme file to know more about the setup")
+    gr.Markdown("IMPORTANT !! - Due to Limitations in the Authication of the Spotify account Please Run it locally with your Spotify Developer Credentials , checkout the Readme file to know more about the setup")
 
 
     gr.TabbedInterface(
