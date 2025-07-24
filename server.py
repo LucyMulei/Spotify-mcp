@@ -3,14 +3,15 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from collections import defaultdict
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# CLIENT_ID   = os.getenv("CLIENT_ID ")
+# CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+# REDIRECT_URI =  os.getenv("REDIRECT_URI")
 
 
-CLIENT_ID  = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI =  os.getenv("REDIRECT_URI")
-
-
-SCOPE = "playlist-read-private playlist-read-collaborative user-top-read user-read-currently-playing user-read-recently-played user-modify-playback-state playlist-modify-public playlist-modify-private"
+# SPOTIFY_SCOPE = "playlist-read-private playlist-read-collaborative user-top-read user-read-currently-playing user-read-recently-played user-modify-playback-state playlist-modify-public playlist-modify-private"
 
 sp = None
 
@@ -26,8 +27,29 @@ def auth_with_spotify():
     global id
 
     try:
-        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=SCOPE,client_id=CLIENT_ID,client_secret=CLIENT_SECRET,redirect_uri=REDIRECT_URI))
+        # sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=SCOPE,CLIENT_ID =CLIENT_ID ,client_secret=CLIENT_SECRET,redirect_uri=REDIRECT_URI))
 
+        # sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+        #     scope=SCOPE,
+        #     CLIENT_ID =CLIENT_ID ,
+        #     client_secret=CLIENT_SECRET,
+        #     redirect_uri=REDIRECT_URI
+        # ))
+
+        print("Client ID:", os.getenv("SPOTIPY_CLIENT_ID"))
+        print("Client Secret:", os.getenv("SPOTIPY_CLIENT_SECRET"))
+        print("Redirect URI:", os.getenv("SPOTIPY_REDIRECT_URI"))
+        print("Scope:", os.getenv("SPOTIPY_SCOPE"))
+
+        sp_oauth = SpotifyOAuth(
+        client_id=os.getenv("SPOTIPY_CLIENT_ID"),
+        client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
+        redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
+        scope=os.getenv("SPOTIPY_SCOPE")
+    )
+
+
+        sp = spotipy.Spotify(auth_manager=sp_oauth)
         current_user = sp.current_user()
 
         if current_user.get("id") != None:
@@ -39,37 +61,97 @@ def auth_with_spotify():
         return f"error auth with spotify {e}"
 
 
-
-
 # Tool
+# def get_artist_and_track(track_name):
+
+#     """
+#     Searches for a track and returns artist info and URIs
+#     """
+
+#     if not sp:
+#         return "Please authenticate with Spotify first!"
+
+#     if not track_name.strip():
+#         return "Please enter a track name!"
+
+#     artist_song = defaultdict(list)
+
+#     response = sp.search(q="track:"+track_name,type="track")
+
+#     if response:
+#         items = response.get("tracks", {}).get("items", [])
+#         if items:
+#             for item in items:
+#                 if item and item.get("artists")[0]:
+#                         artist_song["uri"].append(item["uri"])
+#                         artist_song["name"].append(item["artists"][0].get("name"))
+#                 else:
+#                         artist_song["uri"].append(None)
+#                         artist_song["name"].append(None)
+
+#     return artist_song
+
+
+
+# Making the output for above cuter
 def get_artist_and_track(track_name):
-
     """
-    Searches for a track and returns artist info and URIs
+    Searches for a track and returns a list of dictionaries with artist name and track URI
     """
-
     if not sp:
         return "Please authenticate with Spotify first!"
 
     if not track_name.strip():
         return "Please enter a track name!"
 
-    artist_song = defaultdict(list)
+    artist_song_list = []
 
-    response = sp.search(q="track:"+track_name,type="track")
-
-    if response:
+    try:
+        response = sp.search(q=f"track:{track_name}", type="track")
         items = response.get("tracks", {}).get("items", [])
-        if items:
-            for item in items:
-                if item and item.get("artists")[0]:
-                        artist_song["uri"].append(item["uri"])
-                        artist_song["name"].append(item["artists"][0].get("name"))
-                else:
-                        artist_song["uri"].append(None)
-                        artist_song["name"].append(None)
 
-    return artist_song
+        for item in items:
+            artist = item["artists"][0]["name"] if item.get("artists") else None
+            uri = item.get("uri")
+            artist_song_list.append({"artist": artist, "uri": uri})
+
+        return artist_song_list if artist_song_list else "No results found."
+    except Exception as e:
+        return f"Error occurred: {e}"
+
+# Making it cuter part 2
+def get_user_top_tracks(limit_songs=5, time_range="medium_term", offset=0):
+    artist_to_tracks = defaultdict(list)
+
+    try:
+        result = sp.current_user_top_tracks(limit_songs, offset, time_range)
+
+        if result.get("items"):
+            for item in result["items"]:
+                track_name = item.get("name")
+                album_artists = item.get("album", {}).get("artists", [])
+
+                if album_artists:
+                    for artist in album_artists:
+                        artist_name = artist.get("name")
+                        artist_to_tracks[artist_name].append(track_name)
+                else:
+                    artist_to_tracks["Unknown Artist"].append(track_name)
+        else:
+            return "Error retrieving top tracks. Please try again."
+
+        # Format output for display
+        formatted_output = ""
+        for artist, songs in artist_to_tracks.items():
+            formatted_output += f"{artist}:\n"
+            for song in songs:
+                formatted_output += f"  - {song}\n"
+            formatted_output += "\n"
+
+        return formatted_output.strip()
+
+    except Exception as e:
+        return f"Error retrieving top tracks: {e}"
 
 
 # Tool
@@ -281,35 +363,62 @@ def get_users_top_artists(limit_artists=5,offset=0,time_range="medium_term"):
 
 
 #Tool
-def get_user_top_tracks(limit_songs=5,time_range="medium_term",offset=0):
+# def get_user_top_tracks(limit_songs=5,time_range="medium_term",offset=0):
 
-    topTracks_and_their_artists = defaultdict(list)
+#     topTracks_and_their_artists = defaultdict(list)
+
+#     try:
+
+#         result = sp.current_user_top_tracks(limit_songs,offset,time_range)
+
+#         if result.get("items"):
+#             for item in result["items"]:
+#                 topTracks_and_their_artists["track_name"].append(item.get("name"))
+
+#                 album_artists = item.get("album", {}).get("artists", [])
+
+#                 if album_artists:
+#                     for artist in album_artists:
+
+#                         topTracks_and_their_artists["artist_name"].append(artist.get("name"))
+
+#                 else:
+#                     topTracks_and_their_artists["artist_name"].append(None)
+#         else:
+#             return "error retrieving top tracks retry the tool again"
+
+#         return topTracks_and_their_artists
+
+#     except Exception as e:
+#         return f"error retieving top tracks error -{e}"
+
+
+# For multiple artists and also as a key value pair
+
+def get_user_top_tracks(limit_songs=5, time_range="medium_term", offset=0):
+    track_artist_map = {}
 
     try:
-
-        result = sp.current_user_top_tracks(limit_songs,offset,time_range)
+        result = sp.current_user_top_tracks(limit=limit_songs, offset=offset, time_range=time_range)
 
         if result.get("items"):
             for item in result["items"]:
-                topTracks_and_their_artists["track_name"].append(item.get("name"))
-
+                track_name = item.get("name")
                 album_artists = item.get("album", {}).get("artists", [])
 
                 if album_artists:
-                    for artist in album_artists:
-
-                        topTracks_and_their_artists["artist_name"].append(artist.get("name"))
-
+                    artist_names = ", ".join([artist.get("name") for artist in album_artists])
                 else:
-                    topTracks_and_their_artists["artist_name"].append(None)
-        else:
-            return "error retrieving top tracks retry the tool again"
+                    artist_names = "Unknown Artist"
 
-        return topTracks_and_their_artists
+                track_artist_map[track_name] = artist_names
+        else:
+            return "error retrieving top tracks. Retry the tool again."
+
+        return track_artist_map
 
     except Exception as e:
-        return f"error retieving top tracks error -{e}"
-
+        return f"error retrieving top tracks: {e}"
 
 
 gr.Markdown("hello")

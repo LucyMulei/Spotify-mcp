@@ -1,0 +1,3 @@
+Authentication Status,timestamp
+,2025-07-22 14:01:53.422811
+error auth with spotify No CLIENT_ID . Pass it or set a SPOTIPY_CLIENT_ID  environment variable.,2025-07-22 14:25:07.085094

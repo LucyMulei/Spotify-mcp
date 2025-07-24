@@ -60,7 +60,7 @@ A Gradio-based MCP server that provides a user-friendly interface to interact wi
 The server uses the following environment variables:
 Please create a .env file with the credentials
 
-- `CLIENT_ID`: Your Spotify API client ID
+- `CLIENT_ID `: Your Spotify API client ID
 - `CLIENT_SECRET`: Your Spotify API client secret
 - `REDIRECT_URI`: Your Spotify API redirect URI (default: http://127.0.0.1:5000/callback)
 
