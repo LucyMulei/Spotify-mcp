@@ -284,41 +284,84 @@ def add_songs_to_playlist(playlist_id: str, items: str, position=None):
         if add_to_playlist is not None:
             return "success adding songs to playlist"
 
-        # pos = int(position) if position and position.strip() else None
-
-        # add_to_playlist = sp.playlist_add_items(playlist_id, song_uris, pos)
-
-        # if add_to_playlist is not None:
-        #     return "success adding songs to playlist"
-
     except Exception as e:
         return f"error adding song to playlist {e}"
 
 
 #Tool
-def get_users_top_artists(limit_artists=5,offset=0,time_range="medium_term"):
+# def get_users_top_artists(limit_artists=5,offset=0,time_range="medium_term"):
 
+#     """
+#         Use this tool to get the top artist of the user
+
+#         Args:
+#             limit_artists (int): number of artists to retrieve
+#             time_range (str): it can be "medium_term", "short_term" , "long_term" default is "medium_term"
+
+#         Returns:
+#             dict: defaultdict containing genres and artist_name
+
+#     """
+#     if not sp:
+#         return "Please authenticate with Spotify first!"
+
+#     if not limit_artists:
+#         return "Please enter number of artists to retireve "
+
+#     artist_and_genre = defaultdict(list)
+
+#     try:
+#         response = sp.current_user_top_artists(limit_artists, offset, time_range)
+
+#         if response.get("items"):
+#             for item in response["items"]:
+#                 genres = item.get("genres")
+#                 artist_name = item.get("name")
+
+#                 artist_and_genre["artist_name"].append(artist_name)
+#                 artist_and_genre["genres"].append(genres)
+#         else:
+#             return "failed to extract top artists please retry the tool"
+
+#         return artist_and_genre
+
+#     except Exception as e:
+#         return f"error getting top artists error {e}"
+
+
+def get_users_top_artists(limit: int, time_range: str = "medium_term"):
     """
-        Use this tool to get the top artist of the user
+    Use this tool to get the top artists of the user
 
-        Args:
-            limit_artists (int): number of artists to retrieve
-            time_range (str): it can be "medium_term", "short_term" , "long_term" default is "medium_term"
+    Args:
+        limit (int): Number of artists to retrieve
+        time_range (str): One of "short_term", "medium_term", "long_term". Default is "medium_term".
 
-        Returns:
-            dict: defaultdict containing genres and artist_name
-
+    Returns:
+        dict: defaultdict containing genres and artist names
     """
     if not sp:
-        return "Please authenticate with Spotify first!"
+        return "Please authenticate with Spotify first."
 
-    if not limit_artists:
-        return "Please enter number of artists to retireve "
+    if not limit:
+        return "Please enter number of artists to retrieve."
+
+    # Handle blank input => default to medium_term
+    if not time_range or not time_range.strip():
+        time_range = "medium_term"
+
+    # Only allow known ranges
+    valid_ranges = {"short_term", "medium_term", "long_term"}
+    if time_range not in valid_ranges:
+        return f"Invalid time_range. Must be one of: {', '.join(valid_ranges)}"
 
     artist_and_genre = defaultdict(list)
 
     try:
-        response = sp.current_user_top_artists(limit_artists, offset, time_range)
+        response = sp.current_user_top_artists(
+            limit=limit,
+            time_range=time_range
+        )
 
         if response.get("items"):
             for item in response["items"]:
@@ -328,15 +371,13 @@ def get_users_top_artists(limit_artists=5,offset=0,time_range="medium_term"):
                 artist_and_genre["artist_name"].append(artist_name)
                 artist_and_genre["genres"].append(genres)
         else:
-            return "failed to extract top artists please retry the tool"
+            return "No top artists found."
 
         return artist_and_genre
 
     except Exception as e:
-        return f"error getting top artists error {e}"
-
-
-
+        return f"Error getting top artists: {e}"
+    
 
 #Tool
 # def get_user_top_tracks(limit_songs=5,time_range="medium_term",offset=0):
@@ -442,9 +483,24 @@ gr_mcp_tool7 = gr.Interface(
     ],
     outputs=gr.Textbox(label="Result"))
 
-gr_mcp_tool8 = gr.Interface(fn=get_users_top_artists,inputs=[gr.Number(label="number of artists to retrieve ")
-                                                             ,gr.Textbox(label="time_range",info="time range has options of 'medium_term', 'short_term' , 'long_term' default is 'medium_term'")]
-                                                             ,outputs=gr.JSON(label="genre and artist name"))
+# gr_mcp_tool8 = gr.Interface(fn=get_users_top_artists,inputs=[gr.Number(label="number of artists to retrieve ")
+#                                                              ,gr.Textbox(label="time_range",info="time range has options of 'medium_term', 'short_term' , 'long_term' default is 'medium_term'")]
+#                                                              ,outputs=gr.JSON(label="genre and artist name"))
+
+gr_mcp_tool8 = gr.Interface(
+    fn=get_users_top_artists,
+    inputs=[
+        gr.Number(label="Number of Artists to Retrieve"),
+        gr.Dropdown(
+            choices=["short_term", "medium_term", "long_term"],
+            value="medium_term",  # Default value
+            label="Time Range",
+            info="Choose the time range for top artists"
+        )
+    ],
+    outputs=gr.JSON(label="Genres and Artist Names")
+)
+
 
 gr_mcp_tool9 = gr.Interface(fn=get_user_top_tracks,inputs=[gr.Number(label="number of tracks to retrieve ")
                                                              ,gr.Textbox(label="time_range",info="time range has options of 'medium_term', 'short_term' , 'long_term' default is 'medium_term'")]
