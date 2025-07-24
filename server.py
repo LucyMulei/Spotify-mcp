@@ -412,11 +412,35 @@ def get_users_top_artists(limit: int, time_range: str = "medium_term"):
 
 # For multiple artists and also as a key value pair
 
-def get_user_top_tracks(limit_songs=5, time_range="medium_term", offset=0):
-    track_artist_map = {}
+from collections import defaultdict
 
-    if not time_range :
+def get_user_top_tracks(limit_songs=5, time_range="medium_term", offset=0):
+    """
+    Use this tool to get the user's top tracks.
+
+    Args:
+        limit_songs (int): Number of top tracks to retrieve.
+        time_range (str): One of "short_term", "medium_term", "long_term". Defaults to "medium_term".
+        offset (int): Pagination offset.
+
+    Returns:
+        dict: Track names mapped to artist names.
+    """
+    if not sp:
+        return "Please authenticate with Spotify first."
+
+    if not limit_songs:
+        return "Please provide the number of tracks to retrieve."
+
+    # Default or blank fallback
+    if not time_range or not time_range.strip():
         time_range = "medium_term"
+
+    valid_ranges = {"short_term", "medium_term", "long_term"}
+    if time_range not in valid_ranges:
+        return f"Invalid time_range. Must be one of: {', '.join(valid_ranges)}"
+
+    track_artist_map = {}
 
     try:
         result = sp.current_user_top_tracks(limit=limit_songs, offset=offset, time_range=time_range)
@@ -424,22 +448,16 @@ def get_user_top_tracks(limit_songs=5, time_range="medium_term", offset=0):
         if result.get("items"):
             for item in result["items"]:
                 track_name = item.get("name")
-                album_artists = item.get("album", {}).get("artists", [])
-
-                if album_artists:
-                    artist_names = ", ".join([artist.get("name") for artist in album_artists])
-                else:
-                    artist_names = "Unknown Artist"
-
+                artists = item.get("album", {}).get("artists", [])
+                artist_names = ", ".join([a.get("name") for a in artists]) if artists else "Unknown Artist"
                 track_artist_map[track_name] = artist_names
         else:
-            return "error retrieving top tracks. Retry the tool again."
+            return "Error retrieving top tracks. Please try again."
 
         return track_artist_map
 
     except Exception as e:
-        return f"error retrieving top tracks: {e}"
-
+        return f"Error retrieving top tracks: {e}"
 
 gr.Markdown("hello")
 
@@ -502,9 +520,24 @@ gr_mcp_tool8 = gr.Interface(
 )
 
 
-gr_mcp_tool9 = gr.Interface(fn=get_user_top_tracks,inputs=[gr.Number(label="number of tracks to retrieve ")
-                                                             ,gr.Textbox(label="time_range",info="time range has options of 'medium_term', 'short_term' , 'long_term' default is 'medium_term'")]
-                                                             ,outputs=gr.JSON(label="topTrack and artist name"))
+# gr_mcp_tool9 = gr.Interface(fn=get_user_top_tracks,inputs=[gr.Number(label="number of tracks to retrieve ")
+#                                                              ,gr.Textbox(label="time_range",info="time range has options of 'medium_term', 'short_term' , 'long_term' default is 'medium_term'")]
+#                                                              ,outputs=gr.JSON(label="topTrack and artist name"))
+
+gr_mcp_tool9 = gr.Interface(
+    fn=get_user_top_tracks,
+    inputs=[
+        gr.Number(label="Number of Tracks to Retrieve", value=5),
+        gr.Dropdown(
+            choices=["short_term", "medium_term", "long_term"],
+            label="Time Range",
+            value="medium_term",
+            info="Choose time range for top tracks"
+        )
+    ],
+    outputs=gr.JSON(label="Top Tracks and Artist Names")
+)
+
 
 with gr.Blocks() as app:
     gr.Markdown("# 🎵 Spotify MCP Tools")
