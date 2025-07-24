@@ -180,41 +180,44 @@ def create_playlist(id, name, description="", public=True, collaborative=False):
 
 
 # Tool
+
 def get_playlist_name_and_id(limit_playlist=10):
-
     """
-        Use this tool to get playlist name and id , mostly useful in tasks that needs id of playlist
+    Retrieve user's playlists as a dictionary of {playlist_name: playlist_id}.
 
-        it takes args like limit_playlist which is number of paylist you want to retrieve
+    Args:
+        limit_playlist (int): Number of playlists to retrieve.
 
+    Returns:
+        dict: Mapping of playlist names to their IDs.
     """
-    playlist_name_and_id = defaultdict(list)
+    if not sp:
+        return "Please authenticate with Spotify first!"
+
+    playlist_dict = {}
 
     try:
-        result = sp.current_user_playlists(limit_playlist)
+        result = sp.current_user_playlists(limit=limit_playlist)
+        items = result.get("items", [])
 
-        if result.get("items") != None:
+        for item in items:
+            playlist_name = item.get("name")
+            playlist_id = item.get("id")
 
-            for item in result["items"]:
+            if playlist_name and playlist_id:
+                playlist_dict[playlist_name] = playlist_id
 
-                if (item and item.get("name")) or (item and item.get("id")):
+        if not playlist_dict:
+            return "No playlists found."
 
-                    playlist_name_and_id["name"].append(item.get("name"))
-                    playlist_name_and_id["id"].append(item.get("id"))
-
-                else:
-                    playlist_name_and_id["name"].append(None)
-                    playlist_name_and_id["id"].append(None)
-
-
-        return playlist_name_and_id
+        return playlist_dict
 
     except Exception as e:
-        return f"error getting playlists name and id error {e}"
-
+        return f"Error getting playlists: {e}"
 
 
 # Tool
+
 def add_songs_to_playlist(playlist_id: str, items: str, position=None):
     """
     Adds a list of song URIs to the specified playlist.
