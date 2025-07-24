@@ -398,6 +398,9 @@ def get_users_top_artists(limit_artists=5,offset=0,time_range="medium_term"):
 def get_user_top_tracks(limit_songs=5, time_range="medium_term", offset=0):
     track_artist_map = {}
 
+    if not time_range :
+        time_range = "medium_term"
+
     try:
         result = sp.current_user_top_tracks(limit=limit_songs, offset=offset, time_range=time_range)
 
