@@ -100,35 +100,45 @@ def add_to_queue_song(uri_of_song):
 # Tool
 
 def get_recently_played_songs(limit_song=5):
+    """
+    Retrieve the user's recently played tracks.
+    
+    Args:
+        limit_song (int): Number of recent songs to retrieve.
 
+    Returns:
+        dict: Mapping of song names to artist names.
+    """
     if not sp:
         return "Please authenticate with Spotify first!"
 
     if not limit_song:
         return "Please enter a number of songs"
 
-    artist_song = defaultdict(list)
+    song_artist_map = {}
 
-    res = sp.current_user_recently_played(limit_song)
+    try:
+        res = sp.current_user_recently_played(limit=limit_song)
+        items = res.get("items", [])
 
-    items = res.get("items",[])
+        if items:
+            for item in items:
+                track = item.get("track", {})
+                song_name = track.get("name")
+                artist_list = track.get("artists", [])
 
-    if items:
-        for item in items:
-            if item and item.get("track"):
-                track = item.get("track",{})
+                artist_name = artist_list[0]["name"] if artist_list else "Unknown Artist"
 
-                if (track and track.get("name",{})) or (track and track.get("artists",[])):
+                if song_name:
+                    song_artist_map[song_name] = artist_name
+        else:
+            return "No recently played songs found."
 
-                    artist_song["artist_name"].append(track.get("artists")[0].get("name"))
-                    artist_song["song_name"].append(track.get("name"))
+        return song_artist_map
 
-                else:
-                    artist_song["artist_name"].append(None)
-                    artist_song["song_name"].append(None)
-
-
-    return artist_song
+    except Exception as e:
+        return f"Error retrieving recently played songs: {e}"
+    
 
 # Tool
 
@@ -358,7 +368,13 @@ gr_mcp_tool2 = gr.Interface(
 
 gr_mcp_tool3 = gr.Interface(fn=auth_with_spotify,inputs=None,outputs=gr.Textbox(label="Authentication Status"))
 
-gr_mcp_tool4 = gr.Interface(fn=get_recently_played_songs,inputs=gr.Number(label="Number of Songs"),outputs=gr.JSON(label="Recently Played Songs"))
+gr_mcp_tool4 = gr.Interface(
+    fn=get_recently_played_songs,
+    inputs=[
+        gr.Number(label="Number of Recently Played Songs", value=5)
+    ],
+    outputs=gr.JSON(label="Song : Artist")
+)
 
 gr_mcp_tool5 = gr.Interface(
     fn=create_playlist,
