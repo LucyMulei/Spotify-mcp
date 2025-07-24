@@ -273,16 +273,26 @@ def add_songs_to_playlist(playlist_id: str, items: str, position=None):
         else:
             song_uris = items
 
-        pos = int(position) if position and position.strip() else None
 
-        add_to_playlist = sp.playlist_add_items(playlist_id, song_uris, pos)
+        if position == "0":
+            add_to_playlist = sp.playlist_add_items(playlist_id, song_uris, position=0)
+        elif position == "":
+            add_to_playlist = sp.playlist_add_items(playlist_id, song_uris)
+        else:
+            return "Error: Position must be '0' (for beginning) or left blank (for end)."
 
         if add_to_playlist is not None:
             return "success adding songs to playlist"
 
+        # pos = int(position) if position and position.strip() else None
+
+        # add_to_playlist = sp.playlist_add_items(playlist_id, song_uris, pos)
+
+        # if add_to_playlist is not None:
+        #     return "success adding songs to playlist"
+
     except Exception as e:
         return f"error adding song to playlist {e}"
-
 
 
 #Tool
@@ -394,7 +404,6 @@ gr.Markdown("hello")
 
 
 gr_mcp_tool1 = gr.Interface(fn=add_to_queue_song,inputs="text",outputs="text")
-# gr_mcp_tool2 = gr.Interface(fn=get_artist_and_track,inputs="text",outputs="text")
 gr_mcp_tool2 = gr.Interface(
     fn=get_artist_and_track,
     inputs="text",
