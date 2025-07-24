@@ -119,40 +119,6 @@ def get_artist_and_track(track_name):
     except Exception as e:
         return f"Error occurred: {e}"
 
-# Making it cuter part 2
-def get_user_top_tracks(limit_songs=5, time_range="medium_term", offset=0):
-    artist_to_tracks = defaultdict(list)
-
-    try:
-        result = sp.current_user_top_tracks(limit_songs, offset, time_range)
-
-        if result.get("items"):
-            for item in result["items"]:
-                track_name = item.get("name")
-                album_artists = item.get("album", {}).get("artists", [])
-
-                if album_artists:
-                    for artist in album_artists:
-                        artist_name = artist.get("name")
-                        artist_to_tracks[artist_name].append(track_name)
-                else:
-                    artist_to_tracks["Unknown Artist"].append(track_name)
-        else:
-            return "Error retrieving top tracks. Please try again."
-
-        # Format output for display
-        formatted_output = ""
-        for artist, songs in artist_to_tracks.items():
-            formatted_output += f"{artist}:\n"
-            for song in songs:
-                formatted_output += f"  - {song}\n"
-            formatted_output += "\n"
-
-        return formatted_output.strip()
-
-    except Exception as e:
-        return f"Error retrieving top tracks: {e}"
-
 
 # Tool
 def add_to_queue_song(uri_of_song):
@@ -428,7 +394,12 @@ gr.Markdown("hello")
 
 
 gr_mcp_tool1 = gr.Interface(fn=add_to_queue_song,inputs="text",outputs="text")
-gr_mcp_tool2 = gr.Interface(fn=get_artist_and_track,inputs="text",outputs="text")
+# gr_mcp_tool2 = gr.Interface(fn=get_artist_and_track,inputs="text",outputs="text")
+gr_mcp_tool2 = gr.Interface(
+    fn=get_artist_and_track,
+    inputs="text",
+    outputs=gr.Textbox(label="Track : Artist", lines=15)
+)
 gr_mcp_tool3 = gr.Interface(fn=auth_with_spotify,inputs=None,outputs=gr.Textbox(label="Authentication Status"))
 gr_mcp_tool4 = gr.Interface(fn=get_recently_played_songs,inputs=gr.Number(label="Number of Songs"),outputs=gr.JSON(label="Recently Played Songs"))
 gr_mcp_tool5 = gr.Interface(
