@@ -6,18 +6,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# CLIENT_ID   = os.getenv("CLIENT_ID ")
-# CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-# REDIRECT_URI =  os.getenv("REDIRECT_URI")
-
-
-# SPOTIFY_SCOPE = "playlist-read-private playlist-read-collaborative user-top-read user-read-currently-playing user-read-recently-played user-modify-playback-state playlist-modify-public playlist-modify-private"
-
 sp = None
 
 id = None
 
 # Tool
+
 def auth_with_spotify():
 
     """
@@ -27,14 +21,6 @@ def auth_with_spotify():
     global id
 
     try:
-        # sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=SCOPE,CLIENT_ID =CLIENT_ID ,client_secret=CLIENT_SECRET,redirect_uri=REDIRECT_URI))
-
-        # sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-        #     scope=SCOPE,
-        #     CLIENT_ID =CLIENT_ID ,
-        #     client_secret=CLIENT_SECRET,
-        #     redirect_uri=REDIRECT_URI
-        # ))
 
         print("Client ID:", os.getenv("SPOTIPY_CLIENT_ID"))
         print("Client Secret:", os.getenv("SPOTIPY_CLIENT_SECRET"))
@@ -62,38 +48,7 @@ def auth_with_spotify():
 
 
 # Tool
-# def get_artist_and_track(track_name):
 
-#     """
-#     Searches for a track and returns artist info and URIs
-#     """
-
-#     if not sp:
-#         return "Please authenticate with Spotify first!"
-
-#     if not track_name.strip():
-#         return "Please enter a track name!"
-
-#     artist_song = defaultdict(list)
-
-#     response = sp.search(q="track:"+track_name,type="track")
-
-#     if response:
-#         items = response.get("tracks", {}).get("items", [])
-#         if items:
-#             for item in items:
-#                 if item and item.get("artists")[0]:
-#                         artist_song["uri"].append(item["uri"])
-#                         artist_song["name"].append(item["artists"][0].get("name"))
-#                 else:
-#                         artist_song["uri"].append(None)
-#                         artist_song["name"].append(None)
-
-#     return artist_song
-
-
-
-# Making the output for above cuter
 def get_artist_and_track(track_name):
     """
     Searches for a track and returns a list of dictionaries with artist name and track URI
@@ -121,6 +76,7 @@ def get_artist_and_track(track_name):
 
 
 # Tool
+
 def add_to_queue_song(uri_of_song):
 
     """
@@ -142,6 +98,7 @@ def add_to_queue_song(uri_of_song):
 
 
 # Tool
+
 def get_recently_played_songs(limit_song=5):
 
     if not sp:
@@ -174,6 +131,7 @@ def get_recently_played_songs(limit_song=5):
     return artist_song
 
 # Tool
+
 def create_playlist(id, name, description="", public=True, collaborative=False):
     """
     Creates a playlist for the given user.
@@ -289,45 +247,6 @@ def add_songs_to_playlist(playlist_id: str, items: str, position=None):
 
 
 #Tool
-# def get_users_top_artists(limit_artists=5,offset=0,time_range="medium_term"):
-
-#     """
-#         Use this tool to get the top artist of the user
-
-#         Args:
-#             limit_artists (int): number of artists to retrieve
-#             time_range (str): it can be "medium_term", "short_term" , "long_term" default is "medium_term"
-
-#         Returns:
-#             dict: defaultdict containing genres and artist_name
-
-#     """
-#     if not sp:
-#         return "Please authenticate with Spotify first!"
-
-#     if not limit_artists:
-#         return "Please enter number of artists to retireve "
-
-#     artist_and_genre = defaultdict(list)
-
-#     try:
-#         response = sp.current_user_top_artists(limit_artists, offset, time_range)
-
-#         if response.get("items"):
-#             for item in response["items"]:
-#                 genres = item.get("genres")
-#                 artist_name = item.get("name")
-
-#                 artist_and_genre["artist_name"].append(artist_name)
-#                 artist_and_genre["genres"].append(genres)
-#         else:
-#             return "failed to extract top artists please retry the tool"
-
-#         return artist_and_genre
-
-#     except Exception as e:
-#         return f"error getting top artists error {e}"
-
 
 def get_users_top_artists(limit: int, time_range: str = "medium_term"):
     """
@@ -380,39 +299,6 @@ def get_users_top_artists(limit: int, time_range: str = "medium_term"):
     
 
 #Tool
-# def get_user_top_tracks(limit_songs=5,time_range="medium_term",offset=0):
-
-#     topTracks_and_their_artists = defaultdict(list)
-
-#     try:
-
-#         result = sp.current_user_top_tracks(limit_songs,offset,time_range)
-
-#         if result.get("items"):
-#             for item in result["items"]:
-#                 topTracks_and_their_artists["track_name"].append(item.get("name"))
-
-#                 album_artists = item.get("album", {}).get("artists", [])
-
-#                 if album_artists:
-#                     for artist in album_artists:
-
-#                         topTracks_and_their_artists["artist_name"].append(artist.get("name"))
-
-#                 else:
-#                     topTracks_and_their_artists["artist_name"].append(None)
-#         else:
-#             return "error retrieving top tracks retry the tool again"
-
-#         return topTracks_and_their_artists
-
-#     except Exception as e:
-#         return f"error retieving top tracks error -{e}"
-
-
-# For multiple artists and also as a key value pair
-
-from collections import defaultdict
 
 def get_user_top_tracks(limit_songs=5, time_range="medium_term", offset=0):
     """
@@ -463,13 +349,17 @@ gr.Markdown("hello")
 
 
 gr_mcp_tool1 = gr.Interface(fn=add_to_queue_song,inputs="text",outputs="text")
+
 gr_mcp_tool2 = gr.Interface(
     fn=get_artist_and_track,
     inputs="text",
     outputs=gr.Textbox(label="Track : Artist", lines=15)
 )
+
 gr_mcp_tool3 = gr.Interface(fn=auth_with_spotify,inputs=None,outputs=gr.Textbox(label="Authentication Status"))
+
 gr_mcp_tool4 = gr.Interface(fn=get_recently_played_songs,inputs=gr.Number(label="Number of Songs"),outputs=gr.JSON(label="Recently Played Songs"))
+
 gr_mcp_tool5 = gr.Interface(
     fn=create_playlist,
     inputs=[
@@ -477,7 +367,9 @@ gr_mcp_tool5 = gr.Interface(
         gr.Textbox(label="Playlist Name", placeholder="Enter playlist name")
     ],
     outputs="text")
+
 gr_mcp_tool6 = gr.Interface(fn=get_playlist_name_and_id,inputs=gr.Number(label="number of playlists"),outputs=gr.JSON(label="playlist name and id"))
+
 
 gr_mcp_tool7 = gr.Interface(
     fn=add_songs_to_playlist,
@@ -501,10 +393,6 @@ gr_mcp_tool7 = gr.Interface(
     ],
     outputs=gr.Textbox(label="Result"))
 
-# gr_mcp_tool8 = gr.Interface(fn=get_users_top_artists,inputs=[gr.Number(label="number of artists to retrieve ")
-#                                                              ,gr.Textbox(label="time_range",info="time range has options of 'medium_term', 'short_term' , 'long_term' default is 'medium_term'")]
-#                                                              ,outputs=gr.JSON(label="genre and artist name"))
-
 gr_mcp_tool8 = gr.Interface(
     fn=get_users_top_artists,
     inputs=[
@@ -518,11 +406,6 @@ gr_mcp_tool8 = gr.Interface(
     ],
     outputs=gr.JSON(label="Genres and Artist Names")
 )
-
-
-# gr_mcp_tool9 = gr.Interface(fn=get_user_top_tracks,inputs=[gr.Number(label="number of tracks to retrieve ")
-#                                                              ,gr.Textbox(label="time_range",info="time range has options of 'medium_term', 'short_term' , 'long_term' default is 'medium_term'")]
-#                                                              ,outputs=gr.JSON(label="topTrack and artist name"))
 
 gr_mcp_tool9 = gr.Interface(
     fn=get_user_top_tracks,
@@ -538,18 +421,17 @@ gr_mcp_tool9 = gr.Interface(
     outputs=gr.JSON(label="Top Tracks and Artist Names")
 )
 
-
 with gr.Blocks() as app:
     gr.Markdown("# 🎵 Spotify MCP Tools")
-    gr.Markdown("Welcome to the Spotify Music Control Panel, Below are the tools available in the Spotify MCP server.")
-    gr.Markdown("IMPORTANT !! - Due to Limitations in the Authication of the Spotify account Please Run it locally with your Spotify Developer Credentials , checkout the Readme file to know more about the setup")
+    gr.Markdown("Welcome to the Spotify Music Control Panel. Below are the tools available in the Spotify MCP server.")
+    gr.Markdown("IMPORTANT !! - Due to Limitations in the Authetication of the Spotify account Please Run it locally with your Spotify Developer Credentials , checkout the Readme file to know more about the setup.")
 
 
     gr.TabbedInterface(
-        [gr_mcp_tool1, gr_mcp_tool2, gr_mcp_tool3, gr_mcp_tool4,
+        [gr_mcp_tool3, gr_mcp_tool1, gr_mcp_tool2 , gr_mcp_tool4,
          gr_mcp_tool5, gr_mcp_tool6, gr_mcp_tool7, gr_mcp_tool8, gr_mcp_tool9],
         tab_names=[
-            "Add to Queue", "Get Artist & Track", "Authenticate", "Recently Played",
+            "Authenticate","Add to Queue", "Get Artist & Track", "Recently Played",
             "Create Playlist", "Playlist Info", "Add Songs to Playlist", "Top Artists", "Top Tracks"
         ]
     )
