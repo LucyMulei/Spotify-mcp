@@ -183,32 +183,27 @@ def create_playlist(id, name, description="", public=True, collaborative=False):
 
 def get_playlist_name_and_id(limit_playlist=10):
     """
-    Retrieve user's playlists as a dictionary of {playlist_name: playlist_id}.
-
-    Args:
-        limit_playlist (int): Number of playlists to retrieve.
-
-    Returns:
-        dict: Mapping of playlist names to their IDs.
+    Retrieve the user's playlists as a dictionary of {playlist_name: playlist_id}.
+    Only returns playlists with both a name and an ID.
     """
     if not sp:
         return "Please authenticate with Spotify first!"
 
-    playlist_dict = {}
-
     try:
-        result = sp.current_user_playlists(limit=limit_playlist)
-        items = result.get("items", [])
+        playlists = sp.current_user_playlists(limit=limit_playlist)
+        items = playlists.get("items", [])
+        
+        if not items:
+            return "No playlists found."
 
-        for item in items:
-            playlist_name = item.get("name")
-            playlist_id = item.get("id")
-
-            if playlist_name and playlist_id:
-                playlist_dict[playlist_name] = playlist_id
+        playlist_dict = {
+            item["name"]: item["id"]
+            for item in items
+            if item.get("name") and item.get("id")
+        }
 
         if not playlist_dict:
-            return "No playlists found."
+            return "No valid playlists found."
 
         return playlist_dict
 
@@ -443,7 +438,7 @@ gr_mcp_tool9 = gr.Interface(
 with gr.Blocks() as app:
     gr.Markdown("# 🎵 Spotify MCP Tools")
     gr.Markdown("Welcome to the Spotify Music Control Panel. Below are the tools available in the Spotify MCP server.")
-    gr.Markdown("IMPORTANT !! - Due to Limitations in the Authetication of the Spotify account Please Run it locally with your Spotify Developer Credentials , checkout the Readme file to know more about the setup.")
+    gr.Markdown("IMPORTANT !! - Due to Limitations in the Authentication of the Spotify account Please Run it locally with your Spotify Developer Credentials , checkout the Readme file to know more about the setup.")
 
 
     gr.TabbedInterface(
